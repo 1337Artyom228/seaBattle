@@ -39,6 +39,7 @@ function playerPlaceShips(table) {
 	}
 	let lastArrOfcellsAround = 'undefined';
 	let lastCell = 'undefined'
+
 	function placeShip(event) {
 		let cell = event.target;
 		let cellRC = getRCbyId(cell);
@@ -57,15 +58,48 @@ function playerPlaceShips(table) {
 			curNumOfShips--;
 			console.log("Ship placing to: " + cellRC);
 			shipStep = 0;
+			makeAllCellsRed(table);
 		} else if (curNumOfShips == 0 && shipStep == 1) {
 			makeShips(table, lastCell, cellRC);
 			shipL--;
 			numOfShips++;
 			shipStep = 0;
 			curNumOfShips = numOfShips;
+			makeAllCellsRed(table);
 		}
 	}
 	
+	function makeAllCellsRed(table) {
+		for (let row in table) {
+			row = parseInt(row);
+			for (let cell in table[row]) {
+				cell = parseInt(cell)
+				let sidesShip = [];
+				let sides = {
+					letfUp : [-1, -1],
+					up: [-1, 0],
+					rigthUp : [-1, 1],
+					left : [0, -1],
+					letftDown : [1, -1],
+					right : [0, 1],
+					rightDown : [1, 1],
+					down : [1, 0]
+				}
+
+				for (let side in sides) {
+					let cords = sides[side];
+					let condition = cellExistsAnd(table, row + cords[0], cell + cords[1], 'green');
+					sidesShip.push(condition);
+				}
+				let cellNotShip = !cellExistsAnd(table, row, cell, 'green')
+				if (sidesShip.indexOf(true) != -1 && cellNotShip) {
+					cellRed(table[row][cell]);
+				} else if (cellNotShip) {
+					cellBlue(table[row][cell]);
+				}
+			}
+		}
+	}
 	function canPlaceShipAround(table, shipCell, shipL) {
 		if (shipL == 1) {
 			return true
@@ -89,7 +123,7 @@ function playerPlaceShips(table) {
 				let collMove = (shipColl < sides[side][1]) ? 1 : -1;
 				for (let coll = shipColl; compareIDK(coll, sides[side][1], collMove); coll = coll + collMove) {
 					arrOfCond.push(cellExistsAnd(table, row, coll, 'blue'));
-					/*console.log('------------------------------');
+					/*console.log('------------------------------'); //logs
 					console.log('canPlaceShipAround function bad logs');
 					console.log(side);
 					console.log(row + " : " + coll);
@@ -166,16 +200,16 @@ function playerPlaceShips(table) {
 	}
 
 	function makeShips(table, lastCell, cell) {
-		console.log('------------------------------'); //logs
+		/*console.log('------------------------------'); //logs
 		console.log('makeShips function logs');
 		console.log('lastCell :' + lastCell);
 		console.log('cell :' + cell);
-		console.log('------------------------------');
+		console.log('------------------------------');*/
 		let rowMove = (lastCell[0] < cell[0]) ? 1 : -1;
-		for (let row = lastCell[0]; compareIDK(row, cell[0], rowMove), row = row + rowMove) {
+		for (let row = lastCell[0]; compareIDK(row, cell[0], rowMove); row = row + rowMove) {
 			let collMove = (lastCell[1] < cell[1]) ? 1 : -1;
 			for(let coll = lastCell[1]; compareIDK(coll, cell[1], collMove); coll = coll + collMove) {
-				makeGreen(table[row][coll]);
+				cellGreen(table[row][coll]);
 			}
 		}
 	}
