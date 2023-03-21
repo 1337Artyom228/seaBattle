@@ -3,8 +3,25 @@ let table = document.querySelector('#field');
 function gamecycle() {
 	table = createTable(table);
 	playerPlaceShips(table);
+	let arrOfPlayerShips = [] // maked in playerPlaceShips
+	console.log(arrOfPlayerShips);
 	botPlaceShips();
 	battle();
+}
+
+function makeArrOfPlayerShips(table) {
+	let arrOfShips = [];
+	for (let row = 0; row <= 9; row++) {
+		arrOfShips.push([]);
+		for (let coll = 0; coll <= 9; coll++) {
+			if (table[row][coll].dataset.ship === "true") {
+				arrOfShips[row].push(true);
+			} else {
+				arrOfShips[row].push(false);
+			}
+		}
+	}
+	return arrOfShips;
 }
 
 function createTable(table) {
@@ -44,10 +61,10 @@ function playerPlaceShips(table) {
 		let cell = event.target;
 		let cellRC = getRCbyId(cell);
 		let arrOfCoolCellsAround = canPlaceShipAround(table, cell, shipL);
-		console.log(curNumOfShips);
+		//console.log(curNumOfShips);
 		if (curNumOfShips >= 0 && shipL == 1 && shipStep == 0 && cell.dataset.canPlaceHere === 'true' && arrOfCoolCellsAround != []) {
 			cellGreen(cell);
-			console.log("Ship placed: " + cellRC);
+			//console.log("Ship placed: " + cellRC);
 			curNumOfShips--;
 			shipStep = 0;
 			makeAllCellsRed(table);
@@ -56,12 +73,12 @@ function playerPlaceShips(table) {
 			lastCell = cellRC;
 			cellGreen(cell);
 			makeAllCellsRedExept(table, arrOfCoolCellsAround);
-			console.log("Ship placing from: " + cellRC);
+			//console.log("Ship placing from: " + cellRC);
 			shipStep = 1;
 		} else if (curNumOfShips >= 0 && curNumOfShips > 0 && shipStep == 1 && cell.dataset.canPlaceHere === 'true' && arrConsistsCord(lastArrOfcellsAround, cellRC)) {
 			makeShips(table, lastCell, cellRC);
 			curNumOfShips--;
-			console.log("Ship placing to: " + cellRC);
+			//console.log("Ship placing to: " + cellRC);
 			shipStep = 0;
 			makeAllCellsRed(table);
 		} else if (curNumOfShips >= 0 && curNumOfShips == 0 && shipStep == 1 && cell.dataset.canPlaceHere === 'true') {
@@ -81,6 +98,8 @@ function playerPlaceShips(table) {
 					cell.removeEventListener('click', placeShip);
 				}
 			}
+			arrOfPlayerShips = makeArrOfPlayerShips(table);
+			console.log(arrOfPlayerShips)
 		}
 	}
 }
