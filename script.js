@@ -1,12 +1,13 @@
 let table = document.querySelector('#field');
+let arrOfBotShips;
 
 function gamecycle() {
 	table = createTable(table);
+	arrOfBotShips = botPlaceShips(table);
+	clear(table);
 	playerPlaceShips(table);
 	let arrOfPlayerShips = [] // maked in playerPlaceShips
-	console.log(arrOfPlayerShips);
-	botPlaceShips();
-	battle();
+	//battle(); runns at she end of playerPlaceShips
 }
 
 function makeArrOfPlayerShips(table) {
@@ -89,17 +90,15 @@ function playerPlaceShips(table) {
 			shipStep = 0;
 			makeAllCellsRed(table);
 		} else if (curNumOfShips <0) {
+			arrOfPlayerShips = makeArrOfPlayerShips(table);
 			for (let row of table) {
 				for (let cell of row) {
-					if (cell.dataset.ship === 'false') {
-						cellRed(cell);
-					}
-
+					cellBlue(cell);
 					cell.removeEventListener('click', placeShip);
 				}
 			}
-			arrOfPlayerShips = makeArrOfPlayerShips(table);
-			console.log(arrOfPlayerShips)
+			clear(table);
+			battle(arrOfPlayerShips, arrOfBotShips);
 		}
 	}
 }
@@ -274,13 +273,124 @@ function cellRed(cell) {
 	cell.className = 'red';
 }
 
-
-function botPlaceShips() {
-	
+function clear(table) {
+	for (let row of table) {
+		for (let cell of row) {
+			cellBlue(cell);
+		}
+	}
+}
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
 }
 
-function battle() {
+function botPlaceShips(table) {
+	console.log("bot placing ships");
+	let shipL = 4;
+	let shipStep = 0;
+	let numOfShips = 1;
+	let curNumOfShips = 4-shipL;
 	
+	let lastArrOfcellsAround = 'undefined';
+	let lastCell = 'undefined';
+	
+	while (curNumOfShips > -1) {
+		let randCords = [getRandomInt(9), getRandomInt(9)];
+		placeShip(randCords);
+	}
+
+	function placeShip(cords) {
+		let cell = table[cords[0]][cords[1]];
+		let cellRC = getRCbyId(cell);
+		let arrOfCoolCellsAround = canPlaceShipAround(table, cell, shipL);
+		//console.log(curNumOfShips);
+		if (curNumOfShips >= 0 && shipL == 1 && shipStep == 0 && cell.dataset.canPlaceHere === 'true' && arrOfCoolCellsAround != []) {
+			cellGreen(cell);
+			//console.log("Ship placed: " + cellRC);
+			curNumOfShips--;
+			shipStep = 0;
+			makeAllCellsRed(table);
+		} else if (curNumOfShips >= 0 && shipStep == 0 && cell.dataset.canPlaceHere === 'true' && arrOfCoolCellsAround != []) {
+			lastArrOfcellsAround = arrOfCoolCellsAround;
+			lastCell = cellRC;
+			cellGreen(cell);
+			makeAllCellsRedExept(table, arrOfCoolCellsAround);
+			//console.log("Ship placing from: " + cellRC);
+			shipStep = 1;
+		} else if (curNumOfShips >= 0 && curNumOfShips > 0 && shipStep == 1 && cell.dataset.canPlaceHere === 'true' && arrConsistsCord(lastArrOfcellsAround, cellRC)) {
+			makeShips(table, lastCell, cellRC);
+			curNumOfShips--;
+			//console.log("Ship placing to: " + cellRC);
+			shipStep = 0;
+			makeAllCellsRed(table);
+		} else if (curNumOfShips >= 0 && curNumOfShips == 0 && shipStep == 1 && cell.dataset.canPlaceHere === 'true') {
+			makeShips(table, lastCell, cellRC);
+			shipL--;
+			numOfShips++;
+			curNumOfShips = 4-shipL;
+			shipStep = 0;
+			makeAllCellsRed(table);
+		}
+	}
+	return makeArrOfPlayerShips(table);
+}
+
+function d2ArrdoesntConsistsTrue(d2Arr) {
+	let condArr = [];
+	for (let arr of d2Arr) {
+		for (let elem of arr) {
+			condArr.push(elem); 
+		}
+	}
+	return (condArr.indexOf(true) == -1);
+}
+
+let botTable = document.querySelector('#fieldforbot');
+botTable = createTable(botTable);
+
+
+function battle(playerShips, botShips) {
+	
+	
+	for (let row of table) {
+		for (let cell of row) {
+			cell.addEventListener('click', removeShipsIfItExests);
+		}
+	}
+	
+	function removeShipsIfItExests(event) {
+		let cell = event.target;
+		let cords = getRCbyId(cell);
+		
+		if (cell.dataset.canPlaceHere === 'true') {
+			
+			if (botShips[cords[0]][cords[1]]) {
+				cellGreen(cell)
+				botShips[cords[0]][cords[1]] = false;
+			} else {
+				cellRed(cell);
+			}
+
+			if (d2ArrdoesntConsistsTrue(botShips)) {
+				alert('you won');
+			}
+			
+			let randCords = [getRandomInt(9), getRandomInt(9)];
+			let botCell = botTable[randCords[0]][randCords[1]];
+			
+			if (playerShips[randCords[0]][randCords[1]]) {
+				cellGreen(botCell)
+				playerShips[randCords[0]][randCords[1]] = false;
+			} else {
+				cellRed(botCell);
+			}
+
+			if (d2ArrdoesntConsistsTrue(playerShips)) {
+				alert('you lost');
+			}
+			console.log(d2ArrdoesntConsistsTrue(botShips));
+		}
+	}
 }
 
 gamecycle()
